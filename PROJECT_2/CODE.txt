@@ -1,137 +1,412 @@
-SAMPLE PROJECT 
-===============
-CLIENT : CITIBANK
-COMPANY : WIPRO
-PROJECT : TRADE AND SECURITIES
-APPLICATION : CITI WEALTH ADVISOR
-
-TRADE and Securities
-
-Citi Bank
-
-application	Citi Wealth Advisors
-
-==========================================================================================
-
-Exchange			NSE/BSE
-Script				Tata Steel
-MARKET PRICE			334.25
-Qty				20
-Limit Price			333
-Stop Loss			300
-
-			Trade Now
-
-exchange  script  Market Price	Qty	Limit Price	Stoploss	Status
-
-NSE	  idea	  114.80	10	110		105		Delivered
-NSE	  tcs	  1000		20	950		925		Pending
-NSE	  tata st 332.25	20	333		300		Delivered
-
-
-===========================================================================================
-
-
-MASTER TABLE
-ERROR LOG TABLE
-TRANSACTION TABLE 
-
-MASTER TABLE CREATE --CONSTRAINT CREATE
-ERROR LOG TABLE 
-PROC DML OPERATION 
-SEQUENCE 
-
-create table T_ORDERS
+create table employees1
 (
-order_id number(6),
-exchange char(3),
-Script varchar(12)not null,
-MARKET_PRICE number(8,2)not null,
-Qty number(10)not null,
-Limit_Price number(8,2),
-Stop_Loss number(8,2),
-CREATE_DATE timestamp not null,
-CREATE_BY varchar(10)not null,
-MODIFIED_DATE timestamp,
-MODIFIED_BY varchar(5),
-constraint PK_order_id Primary Key(order_id),
-constraint CHK_exchange Check( exchange in ('NSE','BSE')  )
+employee_id   number,
+first_name    varchar(20),
+last_name     varchar(20),
+email         varchar(30),
+phone_number  number,
+hire_date     date,
+job_id        number,
+salary        number,
+commission_pct  number,
+manager_id     number,
+department_id   number,
+constraint emp1_employee_id_pk primary key(employee_id),
+constraint emp1_email_uk unique(email),
+constraint emp1_email_ck check(email like '%@%.%'),
+constraint emp1_job_id_fk foreign key(job_id) references jobs1(job_id)
 );
 
-create sequence seq_order_id
+create table job_history1
+(
+employee_id    number,
+startdate      date,
+enddate       date,
+job_id        number,
+department_id  number,
+constraint job_employee_id_fk  foreign key(employee_id) references employees1(employee_id),
+constraint  job_job_id_fk      foreign key(job_id) references jobs1(job_id)
+);
+
+
+create table jobs1
+(
+job_id      number,
+job_title   varchar(100),
+min_salary   number,
+max_salary   number,
+constraint jobs1_job_id_pk primary key(job_id)
+);
+
+create table locations1
+(
+location_id      number,
+street_address   varchar(200),
+postal_code      number,
+city             varchar(50),
+state_province   varchar(20),
+country_id       number,
+constraint loc_location_id_pk primary key(location_id),
+constraint loc_country_id_fk foreign key(country_id) references countries1(country_id)
+);
+
+
+create table countries1
+(
+country_id   number,
+country_name varchar(100),
+region_id     number,
+constraint cou_country_id_pk primary key(country_id),
+constraint cou_region_id_fk foreign key(region_id) references regions1(region_id)
+);
+
+
+create table regions1
+(
+region_id   number,
+region_name varchar(100),
+constraint reg_region_id_pk primary key(region_id)
+);
+
+
+create sequence seq_emp1_id
 start with 1
 increment by 1
-maxvalue 3;
+maxvalue 5;
 
-create table error_log
+create sequence seq_job_id
+start with 1
+increment by 1
+maxvalue 5;
+
+create sequence seq_loc_id
+start with 1
+increment by 1
+maxvalue 5;
+
+create sequence seq_cou_id
+start with 1
+increment by 1
+maxvalue 5;
+
+
+create  sequence seq_reg_id
+start with 1
+increment by 1
+maxvalue 5;
+
+create table emp1_error_log
 (
-errcode varchar2(10),
-errmsg  varchar(30),
-usrnme  varchar2(10),
-errtime timestamp,
-blockname varchar2(30)
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
 );
 
 
-create or replace procedure sp_Error_log(
-p_errcode in varchar,
-p_errmsg in varchar,
-p_blockname in varchar)
+create table job_history1_error_log
+(
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
+);
+
+create table jobs1_error_log
+(
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
+);
+
+
+create table loc1_error_log
+(
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
+);
+
+
+create table cou1_error_log
+(
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
+);
+
+
+create table reg1_error_log
+(
+errcode    varchar(10),
+errmsg     varchar(50),
+username   varchar(50),
+errtime    timestamp,
+blockname   varchar(20)
+);
+
+
+create or replace procedure sp_emp1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
+)
 as
 pragma autonomous_transaction;
 begin
-INSERT INTO error_log values (p_errcode,p_errmsg,user,sysdate,p_blockname);
+insert into emp1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+
+create or replace procedure sp_job_history1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
+)
+as
+pragma autonomous_transaction;
+begin
+insert into job_history1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+create or replace procedure sp_jobs1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
+)
+as
+pragma autonomous_transaction;
+begin
+insert into jobs1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
 commit;
 end;
 /
 
 
 
-
-create or replace procedure SP_TRADE_NOW(
-p_exchange in varchar,
-p_Script in varchar,
-p_MARKET_PRICE in number,
-p_Qty in number,
-p_Limit_Price in number,
-p_Stop_Loss in number
+create or replace procedure sp_loc1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
 )
 as
-lv_errcode varchar(100);
-lv_errmsg varchar(30);
+pragma autonomous_transaction;
 begin
-insert into t_orders values
-(seq_order_id.nextval,
-p_exchange,
-p_Script,
-p_MARKET_PRICE,
-p_Qty,
-p_Limit_Price,
-p_Stop_Loss,
-sysdate,
-user,
-NULL,
-NULL);
-COMMIT;
-EXCEPTION
+insert into loc1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+
+create or replace procedure sp_cou1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
+)
+as
+pragma autonomous_transaction;
+begin
+insert into cou1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+
+create or replace procedure sp_reg1_error_log(
+p_errcode   in varchar,
+p_errmsg   in varchar,
+p_blockname  in varchar
+)
+as
+pragma autonomous_transaction;
+begin
+insert into reg1_error_log values(p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+create or replace procedure sp_employees1(
+p_first_name   in varchar,
+p_last_name   in  varchar,
+p_email      in   varchar,
+p_phone_number in  number,
+p_hire_date    in  date,
+p_job_id       in  number,
+p_salary       in  number,
+p_commission_pct in number,
+p_manager_id    in number,
+P_department_id    in number
+)
+as
+lv_errcode   varchar(100);
+lv_errmsg    varchar(100);
+begin
+insert into employees1 values(
+seq_emp1_id.nextval,
+p_first_name,
+p_last_name,
+p_email,
+p_phone_number,
+p_hire_date,
+p_job_id,
+p_salary,
+p_commission_pct,
+p_manager_id,
+p_department_id
+);
+commit;
+exception
 when others then
-lv_errcode := SQLCODE;
-lv_errmsg := substr(SQLERRM,1,30);
-sp_Error_log(lv_errcode,lv_errmsg,'SP_TRADE_NOW');
+lv_errcode :=sqlcode;
+lv_errmsg  :=substr(sqlerrm,1,30);
+sp_emp1_error_log(lv_errcode,lv_errmsg,'sp_employees1');
 end;
 /
 
 
 
-
+create or replace procedure sp_job_history1(
+p_employee_id  in number,
+p_startdate     in date,
+p_enddate       in date,
+p_job_id       in  number,
+p_department_id in number
+)
+as
+lv_errcode   varchar(100);
+lv_errmsg    varchar(100);
 begin
-SP_TRADE_NOW(
-p_exchange	=> 'CSE',
-p_Script	=> 'Tata Steel',
-p_MARKET_PRICE	=> '100.50',
-p_Qty		=> 21,
-p_Limit_Price	=> 110,
-p_Stop_Loss	=> 90
+insert into job_history1 values(
+p_employee_id,
+p_startdate,
+p_enddate,
+p_job_id,
+p_department_id
 );
+commit;
+exception
+when others then
+lv_errcode   :=sqlcode;
+lv_errmsg    :=substr(sqlerrm,1,30);
+sp_job_history1_error_log(lv_errcode,lv_errmsg,'sp_job_history1');
+end;
+/
+
+create or replace procedure sp_jobs1(
+p_job_title    in varchar,
+p_min_salary    in number,
+p_max_salary    in number
+)
+as
+lv_errcode   varchar(100);
+lv_errmsg    varchar(100);
+begin
+insert into jobs1 values(
+seq_job_id.nextval,
+p_job_title,
+p_min_salary,
+p_max_salary
+);
+commit;
+exception
+when others then
+lv_errcode    :=sqlcode;
+lv_errmsg     :=substr(sqlerrm,1,30);
+sp_jobs1_error_log(lv_errcode,lv_errmsg,'sp_jobs1');
+end;
+/
+
+
+
+create or replace procedure sp_locations1(
+p_street_address   in varchar,
+p_postal_code      in number,
+p_city             in varchar,
+p_state_province   in varchar,
+p_country_id       in  number
+)
+as
+lv_errcode    varchar(100);
+lv_errmsg     varchar(100);
+begin
+insert into locations1 values(
+seq_loc_id.nextval,
+p_street_address,
+p_postal_code,
+p_city,
+p_state_province,
+p_country_id
+);
+commit;
+exception
+when others then
+lv_errcode     :=sqlcode;
+lv_errmsg      :=substr(sqlerrm,1,30);
+sp_loc1_error_log(lv_errcode,lv_errmsg,'sp_locations1');
+end;
+/
+
+
+
+create or replace procedure sp_countries1(
+p_country_name in varchar,
+p_region_id    in number
+)
+as
+lv_errcode   varchar(100);
+lv_errmsg    varchar(100);
+begin
+insert into countries1 values(
+seq_cou_id.nextval,
+p_country_name,
+p_region_id
+);
+commit;
+exception
+when others then
+lv_errcode     :=sqlcode;
+lv_errmsg      :=substr(sqlerrm,1,30);
+sp_cou1_error_log(lv_errcode,lv_errmsg,'sp_countries1');
+end;
+/
+
+
+create or replace procedure sp_regions1(
+p_region_name in varchar
+)
+as
+lv_errcode   varchar(100);
+lv_errmsg     varchar(100);
+begin
+insert into regions1 values(
+seq_reg_id.nextval,
+p_region_name
+);
+commit;
+exception
+when others then
+lv_errcode     :=sqlcode;
+lv_errmsg      :=substr(sqlerrm,1,30);
+sp_reg1_error_log(lv_errcode,lv_errmsg,'sp_regions1');
+end;
+/
+begin
+sp_jobs1(
+    p_job_title=>'software manager',
+    p_min_salary=>80000,
+    p_max_salary=>500000
+   );
 end;
 /
