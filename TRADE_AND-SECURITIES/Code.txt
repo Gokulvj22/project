@@ -1,1 +1,137 @@
+SAMPLE PROJECT 
+===============
+CLIENT : CITIBANK
+COMPANY : WIPRO
+PROJECT : TRADE AND SECURITIES
+APPLICATION : CITI WEALTH ADVISOR
 
+TRADE and Securities
+
+Citi Bank
+
+application	Citi Wealth Advisors
+
+==========================================================================================
+
+Exchange			NSE/BSE
+Script				Tata Steel
+MARKET PRICE			334.25
+Qty				20
+Limit Price			333
+Stop Loss			300
+
+			Trade Now
+
+exchange  script  Market Price	Qty	Limit Price	Stoploss	Status
+
+NSE	  idea	  114.80	10	110		105		Delivered
+NSE	  tcs	  1000		20	950		925		Pending
+NSE	  tata st 332.25	20	333		300		Delivered
+
+
+===========================================================================================
+
+
+MASTER TABLE
+ERROR LOG TABLE
+TRANSACTION TABLE 
+
+MASTER TABLE CREATE --CONSTRAINT CREATE
+ERROR LOG TABLE 
+PROC DML OPERATION 
+SEQUENCE 
+
+create table T_ORDERS
+(
+order_id number(6),
+exchange char(3),
+Script varchar(12)not null,
+MARKET_PRICE number(8,2)not null,
+Qty number(10)not null,
+Limit_Price number(8,2),
+Stop_Loss number(8,2),
+CREATE_DATE timestamp not null,
+CREATE_BY varchar(10)not null,
+MODIFIED_DATE timestamp,
+MODIFIED_BY varchar(5),
+constraint PK_order_id Primary Key(order_id),
+constraint CHK_exchange Check( exchange in ('NSE','BSE')  )
+);
+
+create sequence seq_order_id
+start with 1
+increment by 1
+maxvalue 3;
+
+create table error_log
+(
+errcode varchar2(10),
+errmsg  varchar(30),
+usrnme  varchar2(10),
+errtime timestamp,
+blockname varchar2(30)
+);
+
+
+create or replace procedure sp_Error_log(
+p_errcode in varchar,
+p_errmsg in varchar,
+p_blockname in varchar)
+as
+pragma autonomous_transaction;
+begin
+INSERT INTO error_log values (p_errcode,p_errmsg,user,sysdate,p_blockname);
+commit;
+end;
+/
+
+
+
+
+create or replace procedure SP_TRADE_NOW(
+p_exchange in varchar,
+p_Script in varchar,
+p_MARKET_PRICE in number,
+p_Qty in number,
+p_Limit_Price in number,
+p_Stop_Loss in number
+)
+as
+lv_errcode varchar(100);
+lv_errmsg varchar(30);
+begin
+insert into t_orders values
+(seq_order_id.nextval,
+p_exchange,
+p_Script,
+p_MARKET_PRICE,
+p_Qty,
+p_Limit_Price,
+p_Stop_Loss,
+sysdate,
+user,
+NULL,
+NULL);
+COMMIT;
+EXCEPTION
+when others then
+lv_errcode := SQLCODE;
+lv_errmsg := substr(SQLERRM,1,30);
+sp_Error_log(lv_errcode,lv_errmsg,'SP_TRADE_NOW');
+end;
+/
+
+
+
+
+begin
+SP_TRADE_NOW(
+p_exchange	=> 'CSE',
+p_Script	=> 'Tata Steel',
+p_MARKET_PRICE	=> '100.50',
+p_Qty		=> 21,
+p_Limit_Price	=> 110,
+p_Stop_Loss	=> 90
+);
+end;
+/
